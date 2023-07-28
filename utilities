@@ -1,0 +1,199 @@
+from appium import webdriver
+import os.path
+from time import sleep
+import pytest
+
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from appium.webdriver.common.touch_action import TouchAction
+
+xpath = By.XPATH
+id = By.ID
+css = By.CSS_SELECTOR
+name = By.NAME
+cname = By.CLASS_NAME
+
+
+def test_setupDriver(lang, appPackage, appActivity, udid, systemPort):
+  global driver
+  capabilities = {
+    'platformName': 'Android',
+    'deviceName': 'Pixel',
+    'appPackage': appPackage,
+    'appActivity': appActivity,
+    'udid': udid,
+    #'language': lang.split("-")[0],
+    #'locale': lang.split("-")[1],
+    'systemPort': systemPort,
+    'automationName': 'UiAutomator2',
+    'noReset': False,
+    'orientation': 'PORTRAIT',
+    'uiautomator2ServerLaunchTimeout': '5000'
+  }
+  url = 'http://localhost:4723/wd/hub'
+  driver = webdriver.Remote(url, capabilities)
+  return driver
+
+def adbRoot(udid):
+  adb = 'adb -s ' + udid + ' root '
+  os.system(adb)
+  sleep(1)
+
+def test_visible(locator, value):
+  driver.find_element(locator, value)
+  sleep(1)
+
+def test_waitForElement(locator, value):
+  wait = WebDriverWait(driver, 60)
+  try:
+    element = wait.until(EC.element_to_be_clickable((locator, value)))
+    print('Waiting for the element to be clickable')
+  except Exception as ex:
+    print(ex)
+
+def clearNotif(udid):
+  adb = 'adb -s' + udid + ' shell settings put global heads_up_notifications_enabled 0'
+  os.system(adb)
+  sleep(1)
+
+def test_reSet():
+  driver.reset()
+  sleep(1)
+
+def test_killServer(udid):
+  adb = 'adb -s ' + udid + ' kill-server'
+  os.system(adb)
+  sleep(1)
+
+def test_closeApp():
+  driver.close_app()
+  sleep(1)
+
+def test_takeScreenshot(filename):
+  sleep(1)
+  driver.save_screenshot(filename + '.png')
+  b = os.path.split(filename)[1]
+  print('Take screenshot for ' + b)
+
+def test_className(classname, index):
+  driver.find_elements(By.CLASS_NAME, classname).click()
+  sleep(1)
+
+def test_findAndClick(locator, value):
+  driver.find_element(locator, value).click()
+  sleep(2)
+
+def test_xpathElements(value, index):
+  driver.find_elements(By.XPATH, value)[index].click()
+  sleep(2)
+
+def test_idElements(value, index):
+  driver.find_elements(By.ID, value)[index].click()
+  sleep(2)
+
+def test_idElement(value):
+  driver.find_elements(By.ID, value).click()
+  sleep(2)
+
+def test_ClassElements(value, index):
+  #driver.find_elements_by_Class_Name(value)[index].click()
+  driver.find_elements(By.CLASS_NAME, value)[index].click()
+  sleep(2)
+
+def test_sendText(locator, value, text):
+  driver.find_element(locator, value).send_keys(text)
+  sleep(1)
+  print('Send text ' + text)
+
+def test_sendTexts(locator, value, text, index):
+  driver.find_element(locator, value)[index].send_keys(text)
+  sleep(1)
+  print('Send text ' + text)
+
+def test_clearText(locator, value):
+  driver.find_element(locator, value).clear()
+
+def swipeDown(x2, y2, x1, y1, delay):
+  driver.swipe(x2, y2, x1, y1, delay)
+  sleep(2)
+
+def test_tapCoordinates(x1,y1):
+  TouchAction(driver).tap(x=x1, y=y1).perform()
+
+def test_findAndClickElements(locator, value, index):
+  driver.find_elements(locator, value)[index].click()
+  sleep(1)
+
+def test_changeLocale(udid, lang):
+  adb = 'adb -s ' + udid + ' shell am broadcast -a com.google.android.testing.i18n.localeswitcher.CHANGE_LOCALE -e LANGUAGE_TAG ' + lang
+  os.system(adb)
+  sleep(1)
+
+def test_changeLocaletoEn(udid, lang):
+  adb = 'adb -s ' + udid + ' shell am broadcast -a com.google.android.testing.i18n.localeswitcher.CHANGE_LOCALE -e LANGUAGE_TAG "en-US"' + lang
+  os.system(adb)
+  sleep(1)
+
+def test_changeLocale(udid, lang):
+  adb = 'adb -s ' + udid + ' shell am broadcast -a com.google.android.testing.i18n.localeswitcher.CHANGE_LOCALE -e LANGUAGE_TAG ' + lang
+  os.system(adb)
+  sleep(1)
+
+def test_startApp(udid, appPackageappActivity):
+  adb = 'adb -s ' + udid + ' shell monkey -p ' + appPackageappActivity + ' -c android.intent.category.LAUNCHER 1'
+  os.system(adb)
+  sleep(1)
+
+def test_startUp(udid, appPackage):
+  adb = 'adb -s ' + udid + ' shell monkey -p ' + appPackage + ' -c android.intent.category.LAUNCHER 1'
+  os.system(adb)
+  sleep(1)
+
+def test_launchApp():
+  driver.launch_app()
+
+def test_stopApp(udid, appPackage):
+  adb = 'adb -s ' + udid + ' shell am force-stop -n ' + appPackage
+  os.system(adb)
+  sleep(1)
+
+def test_tearDown(udid):
+  adb = 'adb -s ' + udid + ' shell am broadcast -a com.google.android.testing.i18n.localeswitcher.CHANGE_LOCALE -e LANGUAGE_TAG "en-US"'
+  os.system(adb)
+  driver.quit()
+
+def test_moveBack():
+  driver.back()
+
+def test_clearAppData(udid, appPackage):
+  adb = 'adb -s ' + udid + ' shell pm clear ' + appPackage
+  os.system(adb)
+  sleep(1)
+
+def test_swipeUp(x1, y1, x2, y2, delay):
+  driver.swipe(x1, y1, x2, y2, delay)
+  sleep(3)
+
+def test_bottomScroll():
+  driver.execute_script("window.scrollBy(0, +150);")
+
+def test_scrollIntoView(locator, value):
+  target = driver.find_element(locator, value)
+  target.location_once_scrolled_into_view
+  sleep(1)
+  print('Scroll to a specific element')
+
+def test_scrollIntoViewElements(locator, value, index):
+  target = driver.find_elements(locator, value)[index]
+  target.location_once_scrolled_into_view
+  sleep(1)
+  print('Scroll to a specific element')
+
+def test_keycodeEnter(keyNum):
+  driver.press_keycode(keyNum)
+
+def test_quit():
+  driver.quit()
+# driver.press_keycode(HOME)
