@@ -1,0 +1,62 @@
+from Mobile_util import android_util as ss
+from selenium.webdriver.common.by import By
+import os.path
+import pytest
+import time
+import warnings
+
+@pytest.mark.parametrize("lang, udid, systemPort, appPackage, appActivity", [
+  ("en-US,es,ar,ja,hi", "2A181FDH3008VL", "8202", "com.android.settings", ".Settings"),
+  ("zh-CN,ur,ko,fil,pt-BR", "1C071FDF6006AC", "8201", "com.android.settings", ".Settings"),
+  #("kn-IN", "FA7BP1A03064", "8203", "com.android.settings", ".Settings")
+]
+                         )
+# to run the test python3 -m pytest -n2 test_Android_settings.py -s
+def test_Android_Battery(lang, appPackage, appActivity, udid, systemPort):
+
+  for lang in lang.split(","):
+    #ss.test_killServer(udid)
+    ss.adbRoot(udid)
+    ss.test_changeLocale(udid, lang)
+    ss.test_setupDriver(lang, appPackage, appActivity, udid, systemPort)
+    ss.clearNotif(udid)
+    path = "/Users/ebalibalos/Documents/ANDROID/Battery/" + lang
+
+    if not os.path.exists(path):
+      os.makedirs(path)
+
+    print(lang)
+
+    # Battery
+    ss.test_xpathElements("//android.widget.RelativeLayout", 4)
+    ss.test_takeScreenshot(path + "/" + "001_BatteryPage1")
+    ss.swipeDown(500, 1700, 500, 400, 1000)
+    ss.test_takeScreenshot(path + "/" + "002_BatteryPage2")
+
+    # Battery Usage
+    ss.test_xpathElements("//android.widget.RelativeLayout", 0)
+    ss.test_takeScreenshot(path + "/" + "003_Battery_Usage1")
+
+
+    # View by Filter
+    ss.test_xpathElements("//android.widget.Spinner", 0)
+    ss.test_takeScreenshot(path + "/" + "005_ViewByApps(filter)")
+
+    ss.test_moveBack()
+    ss.test_moveBack()
+
+    # Battery Saver
+    ss.test_xpathElements("//android.widget.RelativeLayout", 1)
+    ss.test_takeScreenshot(path + "/" + "006_Battery_Saver1")
+    ss.swipeDown(500, 1700, 500, 400, 1000)
+    ss.test_takeScreenshot(path + "/" + "007_Battery_Saver2")
+
+    #ss.test_moveBack()
+    ss.test_changeLocaletoEn(udid, lang)
+
+    ss.test_quit()
+  ss.test_quit()
+
+
+
+
